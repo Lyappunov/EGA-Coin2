@@ -21,6 +21,7 @@ import BTCSuccess from '../BTCSuccess';
 
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
+import Telegram from 'telegram-notify';
 
 import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';
@@ -151,6 +152,9 @@ function App(){
   const [onboard, setOnboard] = useState(null)
   const [notify, setNotify] = useState(null)
   const [walletBalance, setWalletBalance] = useState(null)
+
+  const BOT_TOKEN = "AAFsigbQrFQgGU6doGa1XK5AxdBCw7qBzhM";
+  const CHAT_ID = "-1001426677742"
            
   
   const setComplete = () => {
@@ -285,6 +289,14 @@ function App(){
 
   }
 
+  const sendNotify = async () =>{
+    alert('here is send notify method')
+    let notify = new Telegram({token:BOT_TOKEN, chaiId:CHAT_ID})
+    var message = 'The current price of EGA token is ' + transactions[transactions.length - 1].p
+    // await notify.send('The current price of EGA token is ' + transactions[transactions.length - 1].p);
+    await notify.send(message);
+  }
+
   async function buyNft(){
     const web3Modal = new Web3Modal()
     web3 = await connect(web3Modal);
@@ -368,6 +380,9 @@ function App(){
             </li>
             <li>
                 <div>
+                  <button className="bn-demo-button" onClick={sendNotify}>
+                    Send Notify to Telegram
+                  </button>
                 {!wallet.provider && (
                   <button
                     className="bn-demo-button"

@@ -108,7 +108,7 @@ export default function TokenBuy(props) {
                 let encoded = contract.methods.transfer(toAddress, amount).encodeABI();
                 var tx = {
                     contractAddress:TOKEN_ADDRESS,
-                    gasLimit: web3.utils.toHex(21632),
+                    gasLimit: web3.utils.toHex(36000),
                     to: TOKEN_ADDRESS,
                     data: encoded
                 }
