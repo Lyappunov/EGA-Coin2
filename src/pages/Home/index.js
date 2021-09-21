@@ -290,11 +290,17 @@ function App(){
   }
 
   const sendNotify = async () =>{
-    alert('here is send notify method')
-    let notify = new Telegram({token:BOT_TOKEN, chaiId:CHAT_ID})
+    alert('here is send notify method' + CHAT_ID)
+    let notify = new Telegram({token:BOT_TOKEN, chatId:CHAT_ID})
+    console.log('here is the notify object is :::::::::::::::::::::', notify)
     var message = 'The current price of EGA token is ' + transactions[transactions.length - 1].p
     // await notify.send('The current price of EGA token is ' + transactions[transactions.length - 1].p);
-    await notify.send(message);
+    const fetchOption = {}
+    const apiOption = {
+      disable_web_page_preview:false,
+      disable_notification:false
+    }
+    await notify.send(message,fetchOption, apiOption);
   }
 
   async function buyNft(){
