@@ -152,10 +152,10 @@ function App(){
   const [onboard, setOnboard] = useState(null)
   const [notify, setNotify] = useState(null)
   const [walletBalance, setWalletBalance] = useState(null)
-
-  const BOT_TOKEN = "2013090121:AAFsigbQrFQgGU6doGa1XK5AxdBCw7qBzhM";
-  const CHAT_ID = "-1001426677742"
+  const [sentMessage, setSentMessage] = useState(false)
            
+  const BOT_TOKEN = "2047059161:AAHHjFvEhVnBd_nJBBMJNuLdGwvxv1SBRcM";
+  const CHAT_ID = "155390373"
   
   const setComplete = () => {
     setComponentFlg(true)
@@ -285,22 +285,24 @@ function App(){
 
         setTransactions(transaction_obj_arr);
         setFetchingUSDData(false);
+        
       });
-
   }
 
   const sendNotify = async () =>{
-    alert('here is send notify method' + CHAT_ID)
-    let notify = new Telegram({token:BOT_TOKEN, chatId:CHAT_ID})
-    console.log('here is the notify object is :::::::::::::::::::::', notify)
-    var message = 'The current price of EGA token is ' + transactions[transactions.length - 1].p
-    // await notify.send('The current price of EGA token is ' + transactions[transactions.length - 1].p);
-    const fetchOption = {}
-    const apiOption = {
-      disable_web_page_preview:false,
-      disable_notification:false
+    if(!fetchingUSDData){
+      let notify = new Telegram({token:BOT_TOKEN, chatId:CHAT_ID})
+      console.log('here is the notify object is :::::::::::::::::::::', notify)
+      var message = 'The current price of EGA token is ' + transactions[transactions.length - 1].p
+      // await notify.send('The current price of EGA token is ' + transactions[transactions.length - 1].p);
+      const fetchOption = {}
+      const apiOption = {
+        disable_web_page_preview:false,
+        disable_notification:false
+      }
+      await notify.send(message,fetchOption, apiOption);
+      setSentMessage(true);
     }
-    await notify.send(message,fetchOption, apiOption);
   }
 
   async function buyNft(){
@@ -353,6 +355,10 @@ function App(){
     setNotify(initNotify())
   }, [])
 
+  useEffect(()=>{
+    sendNotify()
+  },[fetchingUSDData])
+
   useEffect(() => {
     const previouslySelectedWallet = window.localStorage.getItem(
       'selectedWallet'
@@ -386,9 +392,6 @@ function App(){
             </li>
             <li>
                 <div>
-                  <button className="bn-demo-button" onClick={sendNotify}>
-                    Send Notify to Telegram
-                  </button>
                 {!wallet.provider && (
                   <button
                     className="bn-demo-button"
@@ -481,6 +484,7 @@ function App(){
               </div>
               <div className="col-md-8">
                 {/* <p style={{fontSize:28,fontWeight:700,color:'#1eff1e'}}>{!fetchingUSDData?(sessionStorage.getItem('bnbBalance') / sessionStorage.getItem('egaBalance')) * (Number(BNBPrice) /100) + ' USD':''} </p> */}
+                
                 <p style={{fontSize:28,fontWeight:700,color:'#1eff1e'}}>{!fetchingUSDData?transactions[transactions.length - 1].p + 'USD':''} </p>
                 {/* <p style={{fontSize:28,fontWeight:700,color:'#1eff1e'}}>{!fetchingUSDData?transactions[transactions.length - 1].y*BNBPrice + 'USD':''} </p> */}
               </div>
