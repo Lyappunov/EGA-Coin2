@@ -28,6 +28,11 @@ export default class Price{
 		const bnbBalance = await bnbToken.methods.balanceOf(this.lpAddress).call();
 		sessionStorage.setItem('egaBalance', Number(egaBalance));
 		sessionStorage.setItem('bnbBalance', Number(bnbBalance));
+		const balances = {
+			egaBalance : egaBalance,
+			bnbBalance : bnbBalance
+		}
+		return balances;
 	}	
 }
 
