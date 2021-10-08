@@ -77,11 +77,12 @@ export default function PaymentBox(props) {
                     <h2>Price :  {props.price} USD</h2>
                     <h2>Price :  {props.currentAccount} USD</h2>
                 </div>
-                <form
+                {/* <form
                     method="POST"
                     action="https://btcpayjungle.com/apps/2PT5KLwGodnxDEYgUuZNgpwf6QU9/pos"
                     target="blank"
-                >
+                > */}
+                <form >
                     <div style={{padding:20, display:'inline'}}>
                         <span style={{color:'white', fontSize:'18px', fontWeight:700, justifyContent:'center'}}>Email : </span>
                         <TextField

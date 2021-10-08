@@ -17,6 +17,7 @@ import {
 
 import PriceChart from '../PriceChart';
 import TokenBuy from '../TokenBuy';
+import TokenSell from '../TokenSell';
 import BTCSuccess from '../BTCSuccess';
 
 import Button from '@material-ui/core/Button';
@@ -142,6 +143,7 @@ function App(){
   const [fetchingData, setFetchingData] = useState(true);
   const [fetchingUSDData, setFetchingUSDData] = useState(true);
   const [fetchingBalance, setFetchingBalance] = useState(false);
+  const [fetchingTotal, setFetchingTotal] = useState(false);
   const [connectionFlg, setConnectionFlg] = useState(false);
   const [balance, setBalance] = useState();
 
@@ -152,11 +154,7 @@ function App(){
   const [onboard, setOnboard] = useState(null)
   const [notify, setNotify] = useState(null)
   const [walletBalance, setWalletBalance] = useState(null)
-  const [sentMessage, setSentMessage] = useState(false)
   const [currentPrice, setCurrentPrice] = useState(0)
-           
-  const BOT_TOKEN = "2047059161:AAHHjFvEhVnBd_nJBBMJNuLdGwvxv1SBRcM";
-  const CHAT_ID = "155390373"
   
   const setComplete = () => {
     setComponentFlg(true)
@@ -189,129 +187,77 @@ function App(){
     var web3 = new Web3(new Web3.providers.HttpProvider('https://bsc-dataseed1.ninicoin.io'))
     var contract = new web3.eth.Contract(EGA, TOKEN_ADDRESS, {from: MY_WALLET_ADDRESS})
     contract.methods.balanceOf(MY_WALLET_ADDRESS).call().then(function(bal){
-      console.log('XXXXXXXXXXXXXXXXXXX',bal)
       const decimal = 16;
       const bigValue = new BigNumber(bal);
       const bigTokenDecimal = generateBigUnit(decimal);
       const bigHumanValue = bigValue.dividedBy(
       new BigNumber(1).dividedBy(bigTokenDecimal)
     );
-    console.log('**********************', bigHumanValue)
+    console.log('**********************', bigHumanValue.c[0])
     setBalance(bigHumanValue);
     setFetchingBalance(true);
-    })
-    
+    })    
   }
+
+  const getTotalSupply =()=>{
+    var web3 = new Web3(new Web3.providers.HttpProvider('https://bsc-dataseed1.ninicoin.io'))
+    var contract = new web3.eth.Contract(EGA, TOKEN_ADDRESS)
+    contract.methods.totalSupply().call().then(function(bal){
+
+      const decimal = 16;
+      const bigValue = new BigNumber(bal);
+      const bigTokenDecimal = generateBigUnit(decimal);
+      const bigHumanValue = bigValue.dividedBy(
+      new BigNumber(1).dividedBy(bigTokenDecimal)
+    );
+    setTotalSupply(bigHumanValue.c[0]);
+    setFetchingTotal(true);
+    })
+  }
+
   const setNecessaryState = ()=>{
     // console.log('************************************************')
     // if(completeFlg == true){
       getBalance();
+      getTotalSupply();
       checkConnection();
-      totalSupplyMethod().then(tsr=>{
-        setTotalSupply(parseInt(tsr/Math.pow(10,16)))
-      })
       
       getBNBPrice().then(bp=>{
         setBNBPrice(bp.result.ethusd)
         priceClss.getPrice();
       }) 
-
-      LoadTransactionsFromBSCScan().then(txns => {
-        if(txns.message == 'OK'){
-          let transaction_arr = [];
-          let transaction_obj_arr = [];
-          var total_amount = 0;
-          var distributed_amount = 0;
-
-          for (let i = 1; i < txns.result.length; i++){
-            
-            const txn = txns.result[i];
-            let bump_arr = [];
-            
-            const bump_time = new Date(txn.timeStamp * 1000).toISOString();
-            const tokenDecimalInt = parseInt(txn.tokenDecimal);
-            const bigValue = new BigNumber(txn.value);
-
-            const bigTokenDecimal = generateBigUnit(tokenDecimalInt);
-            const bigHumanValue = bigValue.dividedBy(
-              new BigNumber(1).dividedBy(bigTokenDecimal)
-            );
-
-            if(i==1 || i==2){
-              total_amount = total_amount + Number(bigHumanValue.decimalPlaces(tokenDecimalInt).toFixed());
-            }
-
-            if(txn.from == GENERATIVE_ADDRESS && txn.to == MY_WALLET_ADDRESS){
-              total_amount = total_amount + Number(bigHumanValue.decimalPlaces(tokenDecimalInt).toFixed());
-            }
-            if(txn.from == MY_WALLET_ADDRESS){
-              distributed_amount = distributed_amount + Number(bigHumanValue.decimalPlaces(tokenDecimalInt).toFixed());
-            }
-            var balance = total_amount - distributed_amount;
-            bump_arr['time'] = bump_time;
-            bump_arr['value'] = bigValue.decimalPlaces(tokenDecimalInt).toFixed()
-            bump_arr['TAM'] = total_amount;
-            bump_arr['DAM'] = distributed_amount;
-            bump_arr['balance'] = balance;
-            bump_arr['price'] = (distributed_amount / balance).toFixed(4)
-            // bump_arr['price'] = (balance / distributed_amount).toFixed(4)
-            bump_arr['name'] = txn.tokenName;
-            bump_arr['symbol'] = txn.tokenSymbol;
-            transaction_arr.push(bump_arr);
-        
-          }
-
-          // setTransactions(transaction_obj_arr);
-          setTransactionsArr(transaction_arr);
-          setFetchingData(false);
-        }
-      })
    
-      if(sessionStorage.getItem('bnbBalance')){
-        bqAPI.loadBitqueryDataUSDT(dateRangeGlobal[0]).then(usds =>{
-          let transaction_obj_arr = [];
-          let wb_usdt_arr = usds.data.ethereum.dexTrades;
-          wb_usdt_arr.map((arr, index) => {
-            // const e_time = arr.timeInterval.minute.substring(0,13);
-            // var idx = wb_usdt_arr.findIndex(item => item.block.timestamp.time == e_time);
-            // const ega_price = Number(arr.quotePrice) * Number(wb_usdt_arr[idx].quotePrice);
-            
-            const ega_price = (sessionStorage.getItem('bnbBalance') / sessionStorage.getItem('egaBalance')) * (Number(arr.quotePrice) /100)
-  
-            transaction_obj_arr.push({
-              d: arr.timeInterval.minute,
-              p: ega_price,
-              x: index,
-              y: ega_price,
-            });
-          })
-  
-          setTransactions(transaction_obj_arr);
-          var price = (transaction_obj_arr[transaction_obj_arr.length - 1].p).toFixed(5)
-          setCurrentPrice(price)
-          setFetchingUSDData(false);
+      if(sessionStorage.getItem('egaBalance')){
+        
+        bqAPI.loadBitqueryDataBTCbalance().then(btc=>{
           
-        });
+          let btcBalance = btc.data.bitcoin.outputs[0].value;
+
+          bqAPI.loadBitqueryDataUSDT(dateRangeGlobal[0]).then(usds =>{
+            let transaction_obj_arr = [];
+            let wb_usdt_arr = usds.data.ethereum.dexTrades;
+            wb_usdt_arr.map((arr, index) => {
+              // const ega_price = (sessionStorage.getItem('bnbBalance') / sessionStorage.getItem('egaBalance')) * (Number(arr.quotePrice))/100
+              const ega_price = (( (btcBalance*0.735) / sessionStorage.getItem('egaBalance'))*1000000) * Number(arr.quotePrice);
+              transaction_obj_arr.push({
+                d: arr.timeInterval.minute,
+                p: ega_price,
+                x: index,
+                y: ega_price,
+              });
+            })
+    
+            setTransactions(transaction_obj_arr);
+            var price = (transaction_obj_arr[transaction_obj_arr.length - 1].p).toFixed(11)
+            setCurrentPrice(price)
+            setFetchingUSDData(false);
+            
+          });
+
+        })
+        
       }
       
-  }
-
-
-  const sendNotify = async () =>{
-    if(sessionStorage.getItem('bnbBalance')){
-      let notify = new Telegram({token:BOT_TOKEN, chatId:CHAT_ID})
-      
-      var message = 'The current price of EGA token is ' + currentPrice + ' USD'
-      // await notify.send('The current price of EGA token is ' + transactions[transactions.length - 1].p);
-      console.log('here is the notify object is :::::::::::::::::::::', message)
-      const fetchOption = {}
-      const apiOption = {
-        disable_web_page_preview:false,
-        disable_notification:false
-      }
-      await notify.send(message,fetchOption, apiOption);
-      setSentMessage(true);
-    }
   }
 
   async function buyNft(){
@@ -364,9 +310,7 @@ function App(){
     setNotify(initNotify())
   }, [])
 
-  useEffect(()=>{
-    sendNotify()
-  },[currentPrice])
+
 
   useEffect(() => {
     const previouslySelectedWallet = window.localStorage.getItem(
@@ -399,6 +343,9 @@ function App(){
             <li>
               <Link to="/token-buy">Token Buying</Link>
             </li>
+            {/* <li>
+              <Link to="/token-sell">Token Sale</Link>
+            </li> */}
             <li>
                 <div>
                 {!wallet.provider && (
@@ -450,12 +397,12 @@ function App(){
                 </li>
                 <li>
                   <p>Total Supply:</p>
-                  <p className="greenCharacter" >{!fetchingData?totalSupply:''}</p>
+                  <p className="greenCharacter" >{fetchingTotal?totalSupply:''}</p>
                 </li>
                 <li>
                   <p>Distributed token:</p>
                   {/* <p className="greenCharacter"><span>$</span>{(parseInt(parseFloat(totalSupply)*(parseFloat(tokenInfo.priceUSD).toFixed(15))/1.4107)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</p> */}
-                  <p className="greenCharacter">{!fetchingData?(Number(totalSupply)-balance).toFixed(5):''}</p>
+                  <p className="greenCharacter">{fetchingBalance && fetchingTotal?(Number(totalSupply)-balance).toFixed(5):''}</p>
                 </li>
                 <li>
                   <p>Wallet Balance Amount:</p>
@@ -472,12 +419,12 @@ function App(){
             <div className="row">
               <div className="col-md-4">
                 <div style={{position:'relative',height:70}}>
-                  {!fetchingData?
+                  {!fetchingUSDData?
                   <div style={{position:'absolute', top:10}}>
                       {/* <img style={{width:40}} src="https://bscscan.com/images/svg/brands/bnb.svg?v=1.3"/> */}
                       <a style={{color:"white", fontSize:23, fontWeight:700}}>
                         <img style={{width:'10%'}} src="./images/photo_ega_coin.png"/> &nbsp;
-                        {transactionsArr[transactionsArr.length - 1]['symbol']}
+                        EGA
                       </a>
                   </div>
                   :null}
@@ -514,14 +461,21 @@ function App(){
                   arrData={transactionsArr} 
                   fetchingData={fetchingData}
                 /> */}
-                <TokenBuy arrData={transactionsArr} fetchingData={fetchingData} currentAccount = {currentAccount}/>
+                <TokenBuy arrData={transactionsArr} currentPrice={currentPrice} fetchingData={fetchingUSDData} currentAccount = {currentAccount}/>
+              </Route>
+              <Route path='/token-sell'>
+                {/* <TokenBuy 
+                  arrData={transactionsArr} 
+                  fetchingData={fetchingData}
+                /> */}
+                <TokenSell arrData={transactionsArr} currentPrice={currentPrice} fetchingData={fetchingUSDData} currentAccount = {currentAccount}/>
               </Route>
               <Route path='/btc-success'>
                 {/* <TokenBuy 
                   arrData={transactionsArr} 
                   fetchingData={fetchingData}
                 /> */}
-                <BTCSuccess arrData={transactionsArr} fetchingData={fetchingData} currentAccount = {currentAccount}/>
+                <BTCSuccess arrData={transactionsArr} fetchingData={fetchingUSDData} currentAccount = {currentAccount}/>
               </Route>
             </Switch>
             
