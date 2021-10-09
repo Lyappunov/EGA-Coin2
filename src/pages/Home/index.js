@@ -4,7 +4,7 @@ import './index.scss'
 import '../index.css'
 
 import BigNumber from "bignumber.js";
-import {TOKEN_ADDRESS, API_KEY, MY_WALLET_ADDRESS, GENERATIVE_ADDRESS} from '../../global/config'
+import {TOKEN_ADDRESS, API_KEY, MY_WALLET_ADDRESS, BACKEND_URL} from '../../global/config'
 // import { Button, ButtonProps, useWalletModal} from '@pancakeswap-libs/uikit'
 import {
   BrowserRouter as Router,
@@ -97,6 +97,12 @@ export function getTokenInfo(){
 
 export function getBNBPrice(){
   return fetch(`https://api.bscscan.com/api?module=stats&action=bnbprice&apikey=${API_KEY}`).then(res => {
+    return res.json()
+  })
+}
+
+export function getCorrectionValue(){
+  return fetch(`${BACKEND_URL}/tokenprice`).then(res => {
     return res.json()
   })
 }
@@ -238,7 +244,7 @@ function App(){
             let wb_usdt_arr = usds.data.ethereum.dexTrades;
             wb_usdt_arr.map((arr, index) => {
               // const ega_price = (sessionStorage.getItem('bnbBalance') / sessionStorage.getItem('egaBalance')) * (Number(arr.quotePrice))/100
-              const ega_price = (( (btcBalance*0.735) / sessionStorage.getItem('egaBalance'))*1000000) * Number(arr.quotePrice);
+              const ega_price = (( (btcBalance*0.775) / sessionStorage.getItem('egaBalance'))*1000000) * Number(arr.quotePrice);
               transaction_obj_arr.push({
                 d: arr.timeInterval.minute,
                 p: ega_price,
@@ -249,8 +255,15 @@ function App(){
     
             setTransactions(transaction_obj_arr);
             var price = (transaction_obj_arr[transaction_obj_arr.length - 1].p).toFixed(11)
-            setCurrentPrice(price)
-            setFetchingUSDData(false);
+            getCorrectionValue().then(cv => {
+              var egaprice = (Number(price) + Number(cv[0].ega)).toFixed(12)
+              console.log('cv is ', cv)
+              console.log('price is ', price)
+              console.log('egaprice is ', egaprice)
+              setCurrentPrice(egaprice)
+              setFetchingUSDData(false);
+            })
+            
             
           });
 
