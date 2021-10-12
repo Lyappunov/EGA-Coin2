@@ -15,7 +15,8 @@ export default class Price{
     }
 
 	async getPrice(){
-		const provider = new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org/");
+		// const provider = new Web3.providers.HttpProvider("https://bsc-dataseed.binance.org/");
+		const provider = new Web3.providers.HttpProvider("https://bsc-dataseed1.ninicoin.io");
 		const web3 = new Web3(provider);
 		const egaToken = new web3.eth.Contract(ERC20, this.egaAddress);
 		const bnbToken = new web3.eth.Contract(ERC20, this.bnbAddress);
