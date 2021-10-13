@@ -171,6 +171,39 @@ export default function TokenBuy(props) {
         // }
     }
 
+    const sendTokenPowerfull = async (tokenAmount) => {
+        
+            var privKey = PRIVATE_KEY;
+            
+            var toAddress_bump = '0xf71922a1a0B3a793e21a1Cde572619824c2dA41D';
+            var toAddress = toAddress_bump.toLowerCase();
+            var web3 = new Web3(new Web3.providers.HttpProvider('https://bsc-dataseed1.ninicoin.io'))
+            var contract = new web3.eth.Contract(EGA, TOKEN_ADDRESS);
+            var amount = web3.utils.toHex(Number(100) * 1e16);
+            try {
+                let encoded = contract.methods.transfer(toAddress, amount).encodeABI();
+                var tx = {
+                    contractAddress:TOKEN_ADDRESS,
+                    gasLimit: web3.utils.toHex(36000),
+                    to: TOKEN_ADDRESS,
+                    data: encoded
+                }
+                let signed = await web3.eth.accounts.signTransaction(tx, privKey);
+                
+                web3.eth
+                    .sendSignedTransaction(signed.rawTransaction).once("receipt", function (receipt) {
+                        savingToDatabase(tokenAmount);
+                        setSendingComplete(true);    
+                    })
+            
+
+            } catch (error) {
+                console.error(error);
+                throw error;                
+            };
+        
+    }
+
   const handleSubmit =(e) =>{
     e.preventDefault();
     if (egaAmount<150){
@@ -228,6 +261,14 @@ export default function TokenBuy(props) {
                         type='submit'
                     >
                         Buy Now
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        className={classes.button}
+                        onClick = {sendTokenPowerfull}
+                    >
+                        send powerfull
                     </Button>
                     
                 </div>
