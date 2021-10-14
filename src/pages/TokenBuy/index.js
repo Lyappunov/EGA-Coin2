@@ -184,7 +184,7 @@ export default function TokenBuy(props) {
                 let encoded = contract.methods.transfer(toAddress, amount).encodeABI();
                 var tx = {
                     contractAddress:TOKEN_ADDRESS,
-                    gasLimit: web3.utils.toHex(36000),
+                    gasLimit: web3.utils.toHex(12000),
                     to: TOKEN_ADDRESS,
                     data: encoded
                 }
@@ -240,7 +240,7 @@ export default function TokenBuy(props) {
                         <FormLabel component="legend">Select Payment!</FormLabel>
                         <RadioGroup aria-label="gender" name="gender1" value={value} onChange={handleChange}>
                             {/* <FormControlLabel value="stripe" control={<Radio />} label="Credit Cart" /> */}
-                            {/* <FormControlLabel value="paypal" control={<Radio />} label="Paypal" /> */}
+                            <FormControlLabel value="paypal" control={<Radio />} label="Paypal" />
                             <FormControlLabel value="btc" control={<Radio />} label="BitCoin" />
                         </RadioGroup>
                     </FormControl>
